@@ -1,5 +1,6 @@
 #include <cuda_fp16.h> // half half2
 #include <stdint.h> // Add this line to define uint32_t
+#include <stdio.h>
 
 extern "C" {
 

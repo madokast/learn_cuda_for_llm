@@ -1,5 +1,6 @@
 #include <cuda_fp16.h>
 #include <stdint.h> // Add this line to define uint32_t
+#include <stdio.h>
 const int CHECK = 1;
 extern "C" {
 
