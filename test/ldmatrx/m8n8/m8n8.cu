@@ -1,9 +1,9 @@
-#include <cuda_fp16.h>
+#include <cuda_fp16.h> // half half2
 #include <stdint.h> // Add this line to define uint32_t
 const int CHECK = 1;
 extern "C" {
 
-__global__ void test(const half __restrict__  *m, half __restrict__ *n) {
+__global__ void test(const half __restrict__ *m, half __restrict__ *n) {
   int tid = threadIdx.x;
   if (CHECK) printf("m[%d] = %.3f, m[%d] = %.3f\n", tid*2, float(m[tid*2]), tid*2+1, float(m[tid*2+1]));
 
@@ -29,6 +29,7 @@ __global__ void test(const half __restrict__  *m, half __restrict__ *n) {
     : "r"(s_ptr)
   );
   
+  // 写入 n 矩阵中
   half2 m_ele_h2 = *((half2 *)(&m_ele));
   if (CHECK) printf("tid = %d, m_ele = [%f, %f]\n", tid, float(m_ele_h2.x), float(m_ele_h2.y));
   n[tid*2] = m_ele_h2.x, n[tid*2+1] = m_ele_h2.y;

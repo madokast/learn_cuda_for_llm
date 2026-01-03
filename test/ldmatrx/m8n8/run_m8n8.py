@@ -29,3 +29,5 @@ cuda.Context.synchronize()
 
 print(M.reshape((8,8)))
 print(N.reshape((8,8)))
+
+assert np.allclose(M, N)
