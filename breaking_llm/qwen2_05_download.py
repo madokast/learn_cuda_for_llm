@@ -1,5 +1,7 @@
+import time
 import shutil
 from pathlib import Path
+from transformers.generation.streamers import BaseStreamer
 from transformers import AutoModelForCausalLM, AutoTokenizer
 
 model_name = "Qwen/Qwen2.5-0.5B-Instruct"
@@ -41,14 +43,41 @@ text = tokenizer.apply_chat_template(
 )
 model_inputs = tokenizer([text], return_tensors="pt").to(model.device)
 
-generated_ids = model.generate(
+# 创建流式器
+class MyStreamer(BaseStreamer):
+    def __init__(self, tokenizer):
+        self.in_promot = True
+        self.tokenizer = tokenizer
+        self.token_count = 0
+        self.time_to_first_token = 0
+        self.start_time = time.time()
+
+    def put(self, value):
+        if self.in_promot:
+            self.in_promot = False
+            self.start_time = time.time()
+            return
+        if self.token_count == 0:
+            self.time_to_first_token = time.time() - self.start_time
+        self.token_count += len(value)
+        token = self.tokenizer.decode(value, skip_special_tokens=True)
+        if token != "": 
+            print(token, end="", flush=True)
+
+    def end(self):
+        print(f"\n\nTime to first token: {self.time_to_first_token:.4f} seconds")
+        print(f"Tokens per second: {self.token_count / self.time_to_first_token:.4f}")
+        print()
+
+streamer = MyStreamer(tokenizer)
+
+_ = model.generate(
     **model_inputs,
-    max_new_tokens=512
+    max_new_tokens=512,
+    streamer=streamer
 )
-generated_ids = [
-    output_ids[len(input_ids):] for input_ids, output_ids in zip(model_inputs.input_ids, generated_ids)
-]
 
-response = tokenizer.batch_decode(generated_ids, skip_special_tokens=True)[0]
-
-print(response)
+"""
+Time to first token: 1.0533 seconds
+Tokens per second: 185.1280
+"""
