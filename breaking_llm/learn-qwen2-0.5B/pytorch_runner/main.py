@@ -14,9 +14,9 @@ from transformers.tokenization_utils_base import BatchEncoding
 from transformers.generation.configuration_utils import GenerationConfig
 from transformers.generation.streamers import TextStreamer
 
-from pytorch_model_def import Qwen2ForCausalLM
+from model_def import Qwen2ForCausalLM
 
-model_path = Path(__file__).parent / "qwen2-0.5B-Instruct"
+model_path = Path(__file__).parent.parent / "qwen2-0.5B-Instruct"
 
 # 加载模型配置
 with open(model_path / "config.json", "r") as f:

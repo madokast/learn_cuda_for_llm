@@ -11,12 +11,8 @@ from transformers.cache_utils import Cache, DynamicCache
 from transformers.generation.utils import GenerationMixin
 from transformers.masking_utils import create_causal_mask, create_sliding_window_causal_mask
 from transformers.modeling_flash_attention_utils import FlashAttentionKwargs
-from transformers.modeling_layers import (
-    GenericForQuestionAnswering,
-    GenericForSequenceClassification,
-    GenericForTokenClassification,
-    GradientCheckpointingLayer,
-)
+from transformers.modeling_layers import GradientCheckpointingLayer
+
 from transformers.modeling_outputs import BaseModelOutputWithPast, CausalLMOutputWithPast
 from transformers.modeling_rope_utils import ROPE_INIT_FUNCTIONS, dynamic_rope_update
 from transformers.modeling_utils import ALL_ATTENTION_FUNCTIONS, PreTrainedModel
@@ -37,9 +33,16 @@ class Qwen2MLP(nn.Module):
         self.gate_proj = nn.Linear(self.hidden_size, self.intermediate_size, bias=False)
         self.up_proj = nn.Linear(self.hidden_size, self.intermediate_size, bias=False)
         self.down_proj = nn.Linear(self.intermediate_size, self.hidden_size, bias=False)
+
+        # config.hidden_act is silu
         self.act_fn = ACT2FN[config.hidden_act]
 
     def forward(self, x):
+        # x: linear hidden_size -> intermediate_size
+        #    silu
+        # x: linear hidden_size -> intermediate_size
+        # *
+        # r: linear intermediate_size -> hidden_size
         down_proj = self.down_proj(self.act_fn(self.gate_proj(x)) * self.up_proj(x))
         return down_proj
 
@@ -466,24 +469,9 @@ class Qwen2ForCausalLM(Qwen2PreTrainedModel, GenerationMixin):
         )
 
 
-class Qwen2ForSequenceClassification(GenericForSequenceClassification, Qwen2PreTrainedModel):
-    pass
-
-
-class Qwen2ForTokenClassification(GenericForTokenClassification, Qwen2PreTrainedModel):
-    pass
-
-
-class Qwen2ForQuestionAnswering(GenericForQuestionAnswering, Qwen2PreTrainedModel):
-    base_model_prefix = "transformer"  # For BC, where `transformer` was used instead of `model`
-
-
 __all__ = [
     "Qwen2PreTrainedModel",
     "Qwen2Model",
     "Qwen2ForCausalLM",
     "Qwen2RMSNorm",
-    "Qwen2ForSequenceClassification",
-    "Qwen2ForTokenClassification",
-    "Qwen2ForQuestionAnswering",
 ]
