@@ -1,19 +1,20 @@
+import sys
+sys.path.append("..")
+
 import json
-import time
 import torch
 from pathlib import Path
-from transformers import AutoModelForCausalLM, AutoTokenizer, AutoConfig
 from safetensors.torch import load_file
 
 # .venv/lib/python3.12/site-packages/transformers/models/qwen2
 from transformers.models.qwen2.configuration_qwen2 import Qwen2Config
-from transformers.models.qwen2.modeling_qwen2 import Qwen2ForCausalLM
 from transformers.models.qwen2.tokenization_qwen2_fast import Qwen2TokenizerFast
 
-from tokenizers import AddedToken
 from transformers.tokenization_utils_base import BatchEncoding
 from transformers.generation.configuration_utils import GenerationConfig
 from transformers.generation.streamers import TextStreamer
+
+from pytorch_model_def import Qwen2ForCausalLM
 
 model_path = Path(__file__).parent / "qwen2-0.5B-Instruct"
 
