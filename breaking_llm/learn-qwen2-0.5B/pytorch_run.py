@@ -1,6 +1,8 @@
+import json
+import time
+import torch
 from pathlib import Path
 from transformers import AutoModelForCausalLM, AutoTokenizer, AutoConfig
-import torch
 from safetensors.torch import load_file
 
 # .venv/lib/python3.12/site-packages/transformers/models/qwen2
@@ -9,14 +11,17 @@ from transformers.models.qwen2.modeling_qwen2 import Qwen2ForCausalLM
 from transformers.models.qwen2.tokenization_qwen2_fast import Qwen2TokenizerFast
 
 from transformers.tokenization_utils_base import BatchEncoding
+from transformers.generation.configuration_utils import GenerationConfig
+from transformers.generation.streamers import TextStreamer
 
 model_path = Path(__file__).parent / "qwen2-0.5B-Instruct"
 
 # 加载模型配置
-config:Qwen2Config = AutoConfig.from_pretrained(model_path)
+with open(model_path / "config.json", "r") as f:
+    config:Qwen2Config = Qwen2Config(**json.load(f))
 
 # 创建空模型架构
-model:Qwen2ForCausalLM = AutoModelForCausalLM.from_config(config)
+model:Qwen2ForCausalLM = Qwen2ForCausalLM(config)
 
 # 加载权重文件
 weights = load_file(model_path / "model.safetensors")
@@ -32,7 +37,7 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 model = model.to(device)
 model.eval()
 
-tokenizer:Qwen2TokenizerFast = AutoTokenizer.from_pretrained(model_path, fix_mistral_regex=True)
+tokenizer:Qwen2TokenizerFast = Qwen2TokenizerFast.from_pretrained(model_path, fix_mistral_regex=True)
 
 prompt = "Give me a short introduction to large language model."
 messages = [
@@ -50,41 +55,14 @@ text:str = tokenizer.apply_chat_template(
 # model_inputs = {"input_ids": tensor, "attention_mask": tensor}
 model_inputs:BatchEncoding = tokenizer([text], return_tensors="pt").to(device)
 
-# 手动实现token生成
-max_new_tokens = 512
-generated_ids = model_inputs.input_ids
+# 创建流式器
+streamer = TextStreamer(tokenizer, skip_prompt=True)
 
-# while循环生成token
-while generated_ids.shape[1] < model_inputs.input_ids.shape[1] + max_new_tokens:
-    # 调用forward方法获取logits
-    with torch.no_grad():
-        outputs = model(generated_ids)
-        logits = outputs.logits
-    
-    # 获取最后一个token的logits
-    next_token_logits = logits[:, -1, :]
-    
-    # 计算概率分布
-    probs = torch.softmax(next_token_logits, dim=-1)
-    
-    # 采样下一个token（greedy采样，取概率最高的token）
-    next_token_id = torch.argmax(probs, dim=-1, keepdim=True)
-    
-    print(tokenizer.decode(next_token_id.item(), skip_special_tokens=True), end='', flush=True)
-
-    # 将新token添加到生成序列
-    generated_ids = torch.cat([generated_ids, next_token_id], dim=-1)
-    
-    # 检查是否生成了终止token
-    if next_token_id.item() == tokenizer.eos_token_id:
-        break
-
-# 提取新生成的token
-generated_ids = [
-    output_ids[len(input_ids):] for input_ids, output_ids in zip(model_inputs.input_ids, generated_ids)
-]
-
-# 解码并输出结果
-response = tokenizer.batch_decode(generated_ids, skip_special_tokens=True)[0]
-
-print('\n', response)
+with open(model_path / "generation_config.json") as f:
+    generation_config = GenerationConfig(**json.load(f))
+_ = model.generate(
+    **model_inputs,
+    generation_config=generation_config,
+    max_new_tokens=512,
+    streamer=streamer
+)
