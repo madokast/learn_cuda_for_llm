@@ -1,3 +1,8 @@
+"""
+下载 qwen2-0.5B-Instruct
+export HF_ENDPOINT=https://hf-mirror.com
+"""
+
 import time
 import shutil
 from pathlib import Path

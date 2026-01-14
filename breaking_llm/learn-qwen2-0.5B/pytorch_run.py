@@ -3,13 +3,20 @@ from transformers import AutoModelForCausalLM, AutoTokenizer, AutoConfig
 import torch
 from safetensors.torch import load_file
 
+# .venv/lib/python3.12/site-packages/transformers/models/qwen2
+from transformers.models.qwen2.configuration_qwen2 import Qwen2Config
+from transformers.models.qwen2.modeling_qwen2 import Qwen2ForCausalLM
+from transformers.models.qwen2.tokenization_qwen2_fast import Qwen2TokenizerFast
+
+from transformers.tokenization_utils_base import BatchEncoding
+
 model_path = Path(__file__).parent / "qwen2-0.5B-Instruct"
 
 # 加载模型配置
-config = AutoConfig.from_pretrained(model_path)
+config:Qwen2Config = AutoConfig.from_pretrained(model_path)
 
 # 创建空模型架构
-model = AutoModelForCausalLM.from_config(config)
+model:Qwen2ForCausalLM = AutoModelForCausalLM.from_config(config)
 
 # 加载权重文件
 weights = load_file(model_path / "model.safetensors")
@@ -25,19 +32,23 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 model = model.to(device)
 model.eval()
 
-tokenizer = AutoTokenizer.from_pretrained(model_path, fix_mistral_regex=True)
+tokenizer:Qwen2TokenizerFast = AutoTokenizer.from_pretrained(model_path, fix_mistral_regex=True)
 
 prompt = "Give me a short introduction to large language model."
 messages = [
     {"role": "system", "content": "You are Qwen, created by Alibaba Cloud. You are a helpful assistant."},
     {"role": "user", "content": prompt}
 ]
-text = tokenizer.apply_chat_template(
+
+# text = '<|im_start|>system\nYou are Qwen, created by Alibaba Cloud. You are a helpful assistant.<|im_end|>\n<|im_start|>user\nGive me a short introduction to large language model.<|im_end|>\n<|im_start|>assistant\n'
+text:str = tokenizer.apply_chat_template(
     messages,
     tokenize=False,
     add_generation_prompt=True
 )
-model_inputs = tokenizer([text], return_tensors="pt").to(device)
+
+# model_inputs = {"input_ids": tensor, "attention_mask": tensor}
+model_inputs:BatchEncoding = tokenizer([text], return_tensors="pt").to(device)
 
 # 手动实现token生成
 max_new_tokens = 512
@@ -59,6 +70,8 @@ while generated_ids.shape[1] < model_inputs.input_ids.shape[1] + max_new_tokens:
     # 采样下一个token（greedy采样，取概率最高的token）
     next_token_id = torch.argmax(probs, dim=-1, keepdim=True)
     
+    print(tokenizer.decode(next_token_id.item(), skip_special_tokens=True), end='', flush=True)
+
     # 将新token添加到生成序列
     generated_ids = torch.cat([generated_ids, next_token_id], dim=-1)
     
@@ -74,4 +87,4 @@ generated_ids = [
 # 解码并输出结果
 response = tokenizer.batch_decode(generated_ids, skip_special_tokens=True)[0]
 
-print(response)
+print('\n', response)
