@@ -10,6 +10,7 @@ from transformers.models.qwen2.configuration_qwen2 import Qwen2Config
 from transformers.models.qwen2.modeling_qwen2 import Qwen2ForCausalLM
 from transformers.models.qwen2.tokenization_qwen2_fast import Qwen2TokenizerFast
 
+from tokenizers import AddedToken
 from transformers.tokenization_utils_base import BatchEncoding
 from transformers.generation.configuration_utils import GenerationConfig
 from transformers.generation.streamers import TextStreamer
@@ -37,7 +38,12 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 model = model.to(device)
 model.eval()
 
-tokenizer:Qwen2TokenizerFast = Qwen2TokenizerFast.from_pretrained(model_path, fix_mistral_regex=True)
+# 加载tokenizer
+tokenizer:Qwen2TokenizerFast = Qwen2TokenizerFast(
+    vocab_file=str(model_path / "vocab.json"),
+    merges_file=str(model_path / "merges.txt"),
+    tokenizer_file=str(model_path / "tokenizer.json"),
+)
 
 prompt = "Give me a short introduction to large language model."
 messages = [
@@ -45,12 +51,12 @@ messages = [
     {"role": "user", "content": prompt}
 ]
 
-# text = '<|im_start|>system\nYou are Qwen, created by Alibaba Cloud. You are a helpful assistant.<|im_end|>\n<|im_start|>user\nGive me a short introduction to large language model.<|im_end|>\n<|im_start|>assistant\n'
-text:str = tokenizer.apply_chat_template(
-    messages,
-    tokenize=False,
-    add_generation_prompt=True
-)
+
+text:str = """<|im_start|>system
+You are Qwen, created by Alibaba Cloud. You are a helpful assistant.<|im_end|>
+<|im_start|>user
+Give me a short introduction to large language model.<|im_end|>
+<|im_start|>assistant\n"""
 
 # model_inputs = {"input_ids": tensor, "attention_mask": tensor}
 model_inputs:BatchEncoding = tokenizer([text], return_tensors="pt").to(device)
