@@ -41,26 +41,17 @@ model.eval()
 
 # 加载tokenizer
 tokenizer:Qwen2TokenizerFast = Qwen2TokenizerFast(
-    vocab_file=str(model_path / "vocab.json"),
-    merges_file=str(model_path / "merges.txt"),
     tokenizer_file=str(model_path / "tokenizer.json"),
 )
 
-prompt = "Give me a short introduction to large language model."
-messages = [
-    {"role": "system", "content": "You are Qwen, created by Alibaba Cloud. You are a helpful assistant."},
-    {"role": "user", "content": prompt}
-]
-
-
-text:str = """<|im_start|>system
-You are Qwen, created by Alibaba Cloud. You are a helpful assistant.<|im_end|>
-<|im_start|>user
-Give me a short introduction to large language model.<|im_end|>
+text:str = """<|im_start|>user
+Hello<|im_end|>
 <|im_start|>assistant\n"""
 
 # model_inputs = {"input_ids": tensor, "attention_mask": tensor}
 model_inputs:BatchEncoding = tokenizer([text], return_tensors="pt").to(device)
+input_ids = model_inputs["input_ids"]
+attention_mask = model_inputs["attention_mask"]
 
 # 创建流式器
 streamer = TextStreamer(tokenizer, skip_prompt=True)
@@ -68,7 +59,8 @@ streamer = TextStreamer(tokenizer, skip_prompt=True)
 with open(model_path / "generation_config.json") as f:
     generation_config = GenerationConfig(**json.load(f))
 _ = model.generate(
-    **model_inputs,
+    input_ids=input_ids,
+    attention_mask=attention_mask,
     generation_config=generation_config,
     max_new_tokens=512,
     streamer=streamer
