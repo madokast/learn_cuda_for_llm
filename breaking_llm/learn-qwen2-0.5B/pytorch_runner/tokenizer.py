@@ -1,6 +1,5 @@
 import json
-import codecs
-import regex as re
+import regex as re # 必须使用 regex 模块而不是 python 内置的 re 模块
 from typing import Dict, List, Tuple, Callable, Generator
 
 TokenId = int
