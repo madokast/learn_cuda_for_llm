@@ -1,6 +1,7 @@
 **/.venv/
 breaking_llm/learn-qwen2-0.5B/qwen2-0.5B-Instruct/
 **/*.pyc
-tensor-cpp/build/
-tensor-cpp/.cache/
+**/build/
+**/.cache/
 .trae/
+**/.vscode/
