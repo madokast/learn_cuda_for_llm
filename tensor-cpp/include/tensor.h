@@ -1,6 +1,7 @@
 #pragma once
 #include <cstddef>  // size_t
 #include <memory>
+#include "utils/random.h"
 
 struct Tensor2D {
     std::unique_ptr<float[]> data;
@@ -9,7 +10,14 @@ struct Tensor2D {
 
     Tensor2D(std::size_t r, std::size_t c) 
         : data(std::make_unique<float[]>(r * c)), rows(r), cols(c) {}
+
+    // 填充随机数
+    void random(uint64_t seed) {
+        FastRandom rng(seed);
+        rng.fill_float_array(data.get(), rows * cols);
+    }
     
+    // 填充零值
     void zero() {
         for (std::size_t i = 0; i < rows * cols; ++i) {
             data[i] = 0.0f;
