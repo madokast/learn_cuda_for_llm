@@ -29,7 +29,7 @@ TEST(TensorTest, ElementAccess) {
 }
 
 // 测试矩阵乘法
-TEST(TensorTest, MatMulNaive) {
+TEST(TensorTest, MatMulNaive_2m2) {
     Tensor2D A(2, 2);
     A.at(0, 0) = 1.0f; A.at(0, 1) = 2.0f;
     A.at(1, 0) = 3.0f; A.at(1, 1) = 4.0f;
@@ -45,4 +45,29 @@ TEST(TensorTest, MatMulNaive) {
     EXPECT_FLOAT_EQ(C.at(0, 1), 22.0f);
     EXPECT_FLOAT_EQ(C.at(1, 0), 43.0f);
     EXPECT_FLOAT_EQ(C.at(1, 1), 50.0f);
+}
+
+TEST(TensorTest, MatMulNaive_3m3) {
+    Tensor2D A(3, 3);
+    A.at(0, 0) = 1.0f; A.at(0, 1) = 2.0f; A.at(0, 2) = 3.0f;
+    A.at(1, 0) = 4.0f; A.at(1, 1) = 5.0f; A.at(1, 2) = 6.0f;
+    A.at(2, 0) = 7.0f; A.at(2, 1) = 8.0f; A.at(2, 2) = 9.0f;
+
+    Tensor2D B(3, 3);
+    B.at(0, 0) = 9.0f; B.at(0, 1) = 8.0f; B.at(0, 2) = 7.0f;
+    B.at(1, 0) = 6.0f; B.at(1, 1) = 5.0f; B.at(1, 2) = 4.0f;
+    B.at(2, 0) = 3.0f; B.at(2, 1) = 2.0f; B.at(2, 2) = 1.0f;
+
+    Tensor2D C(3, 3);
+    matmul_naive(A, B, C);
+
+    EXPECT_FLOAT_EQ(C.at(0, 0), 30.0f);
+    EXPECT_FLOAT_EQ(C.at(0, 1), 24.0f);
+    EXPECT_FLOAT_EQ(C.at(0, 2), 18.0f);
+    EXPECT_FLOAT_EQ(C.at(1, 0), 84.0f);
+    EXPECT_FLOAT_EQ(C.at(1, 1), 69.0f);
+    EXPECT_FLOAT_EQ(C.at(1, 2), 54.0f);
+    EXPECT_FLOAT_EQ(C.at(2, 0), 138.0f);
+    EXPECT_FLOAT_EQ(C.at(2, 1), 114.0f);
+    EXPECT_FLOAT_EQ(C.at(2, 2), 90.0f);
 }
