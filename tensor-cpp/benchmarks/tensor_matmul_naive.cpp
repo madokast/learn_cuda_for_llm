@@ -24,11 +24,34 @@ static void BM_Tensor_MatMul_Naive(benchmark::State& state) {
     }
 }
 
-// 2. 注册测试用例
-// ->Arg(N) 表示传入参数 N
-BENCHMARK(BM_Tensor_MatMul_Naive)
-    ->Arg(2)->Arg(4)->Arg(8)->Arg(16)->Arg(32)->Arg(64)->Arg(128)->Arg(256);
+// // 2. 注册测试用例
+// // ->Arg(N) 表示传入参数 N
+// BENCHMARK(BM_Tensor_MatMul_Naive)
+//     ->Arg(2)->Arg(4)->Arg(8)->Arg(16)->Arg(32)->Arg(64)->Arg(128)->Arg(256);
 
 
-// 3. 生成 main 函数
-BENCHMARK_MAIN();
+// // 3. 生成 main 函数
+// BENCHMARK_MAIN();
+
+// # 通过环境变量控制
+// export BENCH_MIN_SIZE=16
+// export BENCH_MAX_SIZE=1024
+// ./your_benchmark
+// 在main函数中读取环境变量
+int main(int argc, char** argv) {
+    const char* min_env = std::getenv("BENCH_MIN_SIZE");
+    const char* max_env = std::getenv("BENCH_MAX_SIZE");
+    
+    int min_size = min_env ? std::atoi(min_env) : 2;
+    int max_size = max_env ? std::atoi(max_env) : 256;
+    
+    // 动态注册
+    BENCHMARK(BM_Tensor_MatMul_Naive)
+        ->RangeMultiplier(2)
+        ->Range(min_size, max_size);
+    
+    benchmark::Initialize(&argc, argv);
+    benchmark::RunSpecifiedBenchmarks();
+    
+    return 0;
+}
