@@ -48,6 +48,7 @@ int main(int argc, char** argv) {
     // 动态注册
     BENCHMARK(BM_Tensor_MatMul_Naive)
         ->RangeMultiplier(2)
+        ->Iterations(10)
         ->Range(min_size, max_size);
     
     benchmark::Initialize(&argc, argv);
