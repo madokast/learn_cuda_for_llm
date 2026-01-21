@@ -12,11 +12,16 @@ set(BENCHMARK_ENABLE_TESTING OFF CACHE BOOL "" FORCE)
 set(BENCHMARK_ENABLE_INSTALL OFF CACHE BOOL "" FORCE)
 FetchContent_MakeAvailable(benchmark)
 
-add_executable(tensor_matmul_naive tensor_matmul_naive.cpp)
+add_executable(matmul_naive matmul_naive.cpp)
+add_executable(matmul_naive_ijk matmul_naive_ijk.cpp)
 
 # 链接你的核心库 和 benchmark 库
-target_link_libraries(tensor_matmul_naive PRIVATE 
+target_link_libraries(matmul_naive PRIVATE 
     tensor-core      # 你的业务代码
     benchmark::benchmark # Google Benchmark
 )
-    
+
+target_link_libraries(matmul_naive_ijk PRIVATE 
+    tensor-core      # 你的业务代码
+    benchmark::benchmark # Google Benchmark
+)
