@@ -6,9 +6,9 @@
 #include "utils/random.h"
 
 struct Tensor2D {
-    std::unique_ptr<float[]> data;
-    std::size_t rows;
-    std::size_t cols;
+    const std::unique_ptr<float[]> data;
+    const std::size_t rows;
+    const std::size_t cols;
 
     Tensor2D(std::size_t r, std::size_t c) noexcept
         : data(std::make_unique<float[]>(r * c)), rows(r), cols(c) {}
@@ -20,15 +20,15 @@ struct Tensor2D {
     }
     
     // 填充零值
-    void zero() {
+    inline void zero() {
         std::memset(data.get(), 0, rows * cols * sizeof(float));
     }
 
-    float& at(std::size_t r, std::size_t c) noexcept {
+    inline float& at(std::size_t r, std::size_t c) noexcept {
         return data[r * cols + c];
     }
 
-    const float& at(std::size_t r, std::size_t c) const noexcept {
+    inline const float& at(std::size_t r, std::size_t c) const noexcept {
         return data[r * cols + c];
     }
 };

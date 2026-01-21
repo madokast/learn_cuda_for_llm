@@ -4,6 +4,7 @@
 #include <iostream>
 #include "tensor.h"
 
+
 void matmul_naive(const Tensor2D& A, const Tensor2D& B, Tensor2D& C) noexcept {
     std::size_t A_rows = A.rows;
     std::size_t A_cols = A.cols;
