@@ -19,9 +19,9 @@ static void BM_Tensor_MatMul_Naive(benchmark::State& state) {
         // 这里是你要测的核心代码
         matmul_naive(A, B, C);
         
-        // C. 防优化 (见下文)
-        benchmark::DoNotOptimize(C);
     }
+    // C. 防优化
+    benchmark::DoNotOptimize(&C);
 }
 
 

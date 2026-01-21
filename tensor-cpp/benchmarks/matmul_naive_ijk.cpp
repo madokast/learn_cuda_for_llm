@@ -1,4 +1,5 @@
 #include <benchmark/benchmark.h>
+#include <iostream>
 #include "tensor.h" // 你的头文件
 
 // 1. 定义测试函数，参数必须是 benchmark::State&
@@ -15,15 +16,16 @@ static void BM_Tensor_MatMul_Naive_ijk(benchmark::State& state) {
 
     const char* ijk = std::getenv("MATMUL_IJK");
 
+
     // B. 计时循环 (The Loop)
     // 这里的代码会被运行成千上万次
     for (auto _ : state) {
         // 这里是你要测的核心代码
         matmul_naive_ijk(A, B, C, ijk);
         
-        // C. 防优化 (见下文)
-        benchmark::DoNotOptimize(C);
     }
+    // C. 防优化
+    benchmark::DoNotOptimize(&C);
 }
 
 
