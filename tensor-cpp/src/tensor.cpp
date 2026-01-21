@@ -4,6 +4,18 @@
 #include <iostream>
 #include "tensor.h"
 
+#if defined(__GNUC__) || defined(__clang__)
+    // GCC 和 Clang 使用 __restrict__
+    #define __cpu__restrict__ __restrict__
+#elif defined(_MSC_VER)
+    // MSVC 使用 __restrict（注意：不是 restrict）
+    #define __cpu__restrict__ __restrict
+#else
+    // 其他编译器，如果不支持 restrict 特性，可以定义为空
+    #define __cpu__restrict__
+    // 或者使用 C99 的 restrict（如果编译器支持C99）
+    // #define __cpu__restrict__ restrict
+#endif
 
 void matmul_naive(const Tensor2D& A, const Tensor2D& B, Tensor2D& C) noexcept {
     std::size_t A_rows = A.rows;
@@ -88,3 +100,9 @@ void matmul_naive_ijk(const Tensor2D& A, const Tensor2D& B, Tensor2D& C, std::st
         std::abort(); // 立即终止，不进行清理
     }    
 }
+
+
+void matmul_naive_raw(const float* __cpu__restrict__ A, const float* __cpu__restrict__ B, float* __cpu__restrict__ C, std::size_t A_rows, std::size_t A_cols, std::size_t B_cols) {
+    // todo
+}
+
